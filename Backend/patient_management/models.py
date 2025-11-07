@@ -11,6 +11,7 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+
 class Visit(models.Model):
     patient = models.ForeignKey(Patient, related_name='visits', on_delete=models.CASCADE)
     visit_date = models.DateTimeField()
