@@ -28,10 +28,9 @@ function RegistrationForm({ onSuccess }) {
 			alert('Rejestracja pomyślna! Możesz się teraz zalogować.')
 			onSuccess() // Przekieruj do logowania
 		} catch (err) {
-			console.error(err)
-			// Próbujemy wyciągnąć konkretny błąd z odpowiedzi API
-			const apiError = err.response?.data?.email?.[0] || 'Wystąpił błąd podczas rejestracji.'
-			setError(apiError)
+			console.error('Registration error:', err)
+			// Error message is already formatted in registerUser function
+			setError(err.message || 'Wystąpił błąd podczas rejestracji.')
 		}
 	}
 

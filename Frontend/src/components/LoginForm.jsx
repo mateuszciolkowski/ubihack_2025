@@ -22,8 +22,8 @@ function LoginForm({ onSuccess }) {
 			onSuccess()
 		} catch (err) {
 			// Jeśli API zwróci błąd (np. 401 Unauthorized)
-			console.error(err)
-			setError('Nieprawidłowy email lub hasło.')
+			console.error('Login error:', err)
+			setError(err.message || 'Nieprawidłowy email lub hasło.')
 		}
 	}
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 
@@ -49,9 +49,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     def validate_email(self, value):
         """Validate that email is unique"""
-        if User.objects.filter(email=value.lower()).exists():
+        normalized_email = User.objects.normalize_email(value)
+        if User.objects.filter(email=normalized_email).exists():
             raise serializers.ValidationError("Użytkownik z tym adresem email już istnieje.")
-        return value.lower()
+        return normalized_email
     
     
     def create(self, validated_data):
@@ -69,6 +70,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom JWT token serializer with additional user data"""
     
+    username_field = User.USERNAME_FIELD  # Use 'email' instead of 'username'
+    
+    # Override the default username field with email field
+    email = serializers.EmailField(required=True)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove the default username field
+        self.fields.pop('username', None)
+    
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -82,14 +93,58 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     
     def validate(self, attrs):
         """Validate and return tokens with user data"""
-        data = super().validate(attrs)
+        # Get email and password from attrs
+        email = attrs.pop('email', None)
+        password = attrs.get('password')
+        
+        if not email:
+            raise serializers.ValidationError({
+                'email': 'This field is required.'
+            })
+        
+        if not password:
+            raise serializers.ValidationError({
+                'password': 'This field is required.'
+            })
+        
+        # Normalize email using UserManager to match how it's stored
+        normalized_email = User.objects.normalize_email(email)
+        
+        # Authenticate the user
+        user = authenticate(
+            request=self.context.get('request'),
+            username=normalized_email,
+            password=password
+        )
+        
+        if not user:
+            raise serializers.ValidationError({
+                'email': 'No active account found with the given credentials.'
+            })
+        
+        if not user.is_active:
+            raise serializers.ValidationError({
+                'email': 'User account is disabled.'
+            })
+        
+        # Set user for token generation
+        self.user = user
+        
+        # Generate tokens
+        refresh = self.get_token(user)
+        
+        # Prepare response data
+        data = {
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+        }
         
         # Add user data to response
         data['user'] = {
-            'id': self.user.id,
-            'email': self.user.email,
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
+            'id': user.id,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
         }
         
         return data
