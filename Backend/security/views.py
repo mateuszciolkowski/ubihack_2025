@@ -32,7 +32,7 @@ class RegisterView(generics.CreateAPIView):
     """
     API endpoint for user registration.
     
-    Creates a new user account with email, password, first_name, last_name, and account_type.
+    Creates a new user account with email, password, first_name, last_name.
     Returns JWT tokens upon successful registration.
     """
     queryset = User.objects.all()
@@ -51,7 +51,6 @@ class RegisterView(generics.CreateAPIView):
         refresh['email'] = user.email
         refresh['first_name'] = user.first_name
         refresh['last_name'] = user.last_name
-        refresh['account_type'] = user.account_type
         
         return Response({
             'user': UserSerializer(user).data,
