@@ -9,14 +9,14 @@ User = get_user_model()
 class UserAdmin(BaseUserAdmin):
     """Custom admin for User model"""
     
-    list_display = ['email', 'first_name', 'last_name', 'account_type', 'is_active', 'is_staff', 'date_joined']
-    list_filter = ['account_type', 'is_active', 'is_staff', 'date_joined']
+    list_display = ['email', 'first_name', 'last_name', 'is_active', 'is_staff', 'date_joined']
+    list_filter = ['is_active', 'is_staff', 'date_joined']
     search_fields = ['email', 'first_name', 'last_name']
     ordering = ['-date_joined']
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal Info', {'fields': ('first_name', 'last_name', 'account_type')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
@@ -24,7 +24,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name', 'account_type', 'is_active', 'is_staff'),
+            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name', 'is_active', 'is_staff'),
         }),
     )
     

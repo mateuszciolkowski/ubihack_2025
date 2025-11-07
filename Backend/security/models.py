@@ -33,10 +33,6 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom user model with email authentication"""
     
-    ACCOUNT_TYPE_CHOICES = [
-        ('doctor', 'Lekarz'),
-        ('pharmacy', 'Apteka'),
-    ]
     
     email = models.EmailField(
         verbose_name='Email',
@@ -51,11 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name='Nazwisko',
         max_length=150,
     )
-    account_type = models.CharField(
-        verbose_name='Typ konta',
-        max_length=20,
-        choices=ACCOUNT_TYPE_CHOICES,
-    )
+   
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
@@ -64,7 +56,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
     
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'account_type']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
     
     class Meta:
         verbose_name = 'User'
