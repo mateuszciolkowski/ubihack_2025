@@ -16,6 +16,8 @@ services:
     volumes:
       - ./media:/app/media
       - ./security/migrations:/app/security/migrations
+      - ./stress_classification/migrations:/app/stress_classification/migrations
+      - ./patient_management/migrations:/app/patient_management/migrations
     depends_on:
       db_hackathon:
         condition: service_healthy
