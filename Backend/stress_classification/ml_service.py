@@ -156,16 +156,15 @@ class StressClassificationService:
         self.model_loaded = False
         
     def _get_model_path(self):
-        """Zwraca ścieżkę do modelu."""
-        # Ścieżka względna od Backend do MachineLearningService
-        base_dir = Path(__file__).resolve().parent.parent.parent
-        model_path = base_dir / 'MachineLearningService' / 'stress_classifier_multi_subject.pth'
+        """Zwraca ścieżkę do modelu z folderu cnn w serwisie."""
+        base_dir = Path(__file__).resolve().parent  # folder serwisu, gdzie jest ten plik
+        model_path = base_dir / 'cnn' / 'stress_classifier_multi_subject.pth'
         return model_path
     
     def _get_norm_params_path(self):
-        """Zwraca ścieżkę do parametrów normalizacji."""
-        base_dir = Path(__file__).resolve().parent.parent.parent
-        norm_path = base_dir / 'MachineLearningService' / 'normalization_params.npz'
+        """Zwraca ścieżkę do parametrów normalizacji z folderu cnn w serwisie."""
+        base_dir = Path(__file__).resolve().parent
+        norm_path = base_dir / 'cnn' / 'normalization_params.npz'
         return norm_path
     
     def load_model(self):
