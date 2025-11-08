@@ -63,7 +63,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 # --- KONFIGURACJA SSL PROXY (Usunięcie Konfliktów HTTP/HTTPS) ---
 # Używamy zmiennej środowiskowej do poprawnego odczytania protokołu
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SECURE_PROXY_SSL_HEADER = None
+
 USE_X_FORWARDED_HOST = True
 
 # 🚨 KLUCZOWA POPRAWKA DLA HTTP (Sslip.io)
@@ -99,7 +102,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
