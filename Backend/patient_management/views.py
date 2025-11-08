@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from django.contrib.auth import get_user_model
+from collections import defaultdict
 from .models import Patient, Visit, Session
 
 User = get_user_model()
@@ -206,3 +207,178 @@ class AIAnalysisServiceView(APIView):
                 {"detail": f"Błąd podczas generowania analizy AI: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class StressClassDistributionView(APIView):
+    """
+    Endpoint do obliczania procentowego udziału klas stresu dla każdego pacjenta i każdej sesji.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        summary="Oblicz procentowy udział klas stresu",
+        description=""" 
+        Oblicza łączny procentowy udział klas stresu dla każdego pacjenta i każdej sesji.
+        
+        Zwraca:
+        - patients: Lista pacjentów z agregowanymi procentami klas stresu
+        - sessions: Lista wszystkich sesji z procentami klas stresu
+        
+        Klasy stresu:
+        - Baseline
+        - Stress
+        - Amusement
+        - Meditation
+        
+        Procenty są obliczane jako średnie ważone na podstawie czasu trwania sesji.
+        """,
+        responses={
+            200: {
+                'description': 'Sukces - zwraca rozkład klas stresu',
+                'examples': {
+                    'application/json': {
+                        'patients': [
+                            {
+                                'patient_id': 1,
+                                'patient_name': 'Jan Kowalski',
+                                'total_sessions': 3,
+                                'total_duration_seconds': 900,
+                                'stress_classes': {
+                                    'baseline_percentage': 45.2,
+                                    'stress_percentage': 25.8,
+                                    'amusement_percentage': 15.0,
+                                    'meditation_percentage': 14.0
+                                }
+                            }
+                        ],
+                        'sessions': [
+                            {
+                                'session_id': 1,
+                                'patient_id': 1,
+                                'patient_name': 'Jan Kowalski',
+                                'duration_seconds': 300,
+                                'stress_classes': {
+                                    'baseline_percentage': 40.0,
+                                    'stress_percentage': 30.0,
+                                    'amusement_percentage': 20.0,
+                                    'meditation_percentage': 10.0
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    )
+    def get(self, request):
+        """
+        GET /api/patient-management/stress-class-distribution/
+        
+        Oblicza procentowy udział klas stresu dla każdego pacjenta i każdej sesji.
+        """
+        # Pobierz wszystkie sesje, które mają przypisaną wizytę (a więc i pacjenta)
+        sessions = Session.objects.filter(visit__isnull=False).select_related('visit', 'visit__patient')
+        
+        # Struktury do przechowywania danych
+        patients_data = defaultdict(lambda: {
+            'patient_id': None,
+            'patient_name': '',
+            'total_sessions': 0,
+            'total_duration_seconds': 0,
+            'weighted_baseline': 0.0,
+            'weighted_stress': 0.0,
+            'weighted_amusement': 0.0,
+            'weighted_meditation': 0.0,
+            'total_weight': 0.0
+        })
+        
+        sessions_list = []
+        
+        # Przetwórz każdą sesję
+        for session in sessions:
+            patient = session.visit.patient
+            patient_id = patient.id
+            patient_name = f"{patient.first_name} {patient.last_name}"
+            
+            # Pobierz procenty z sesji (jeśli są null, użyj 0)
+            baseline = session.baseline_percentage or 0.0
+            stress = session.stress_percentage or 0.0
+            amusement = session.amusement_percentage or 0.0
+            meditation = session.meditation_percentage or 0.0
+            
+            # Czas trwania sesji (używany jako waga)
+            duration = session.total_duration_seconds or 0
+            
+            # Dodaj dane sesji do listy
+            sessions_list.append({
+                'session_id': session.id,
+                'patient_id': patient_id,
+                'patient_name': patient_name,
+                'visit_id': session.visit.id if session.visit else None,
+                'duration_seconds': duration,
+                'created_at': session.created_at.isoformat() if session.created_at else None,
+                'stress_classes': {
+                    'baseline_percentage': round(baseline, 2),
+                    'stress_percentage': round(stress, 2),
+                    'amusement_percentage': round(amusement, 2),
+                    'meditation_percentage': round(meditation, 2)
+                }
+            })
+            
+            # Agreguj dane dla pacjenta (średnia ważona)
+            patient_data = patients_data[patient_id]
+            patient_data['patient_id'] = patient_id
+            patient_data['patient_name'] = patient_name
+            patient_data['total_sessions'] += 1
+            patient_data['total_duration_seconds'] += duration
+            
+            # Oblicz średnią ważoną
+            if duration > 0:
+                patient_data['weighted_baseline'] += baseline * duration
+                patient_data['weighted_stress'] += stress * duration
+                patient_data['weighted_amusement'] += amusement * duration
+                patient_data['weighted_meditation'] += meditation * duration
+                patient_data['total_weight'] += duration
+        
+        # Przygotuj listę pacjentów z obliczonymi procentami
+        patients_list = []
+        for patient_id, patient_data in patients_data.items():
+            total_weight = patient_data['total_weight']
+            
+            # Oblicz średnie ważone procenty
+            if total_weight > 0:
+                baseline_avg = patient_data['weighted_baseline'] / total_weight
+                stress_avg = patient_data['weighted_stress'] / total_weight
+                amusement_avg = patient_data['weighted_amusement'] / total_weight
+                meditation_avg = patient_data['weighted_meditation'] / total_weight
+            else:
+                baseline_avg = 0.0
+                stress_avg = 0.0
+                amusement_avg = 0.0
+                meditation_avg = 0.0
+            
+            patients_list.append({
+                'patient_id': patient_data['patient_id'],
+                'patient_name': patient_data['patient_name'],
+                'total_sessions': patient_data['total_sessions'],
+                'total_duration_seconds': patient_data['total_duration_seconds'],
+                'stress_classes': {
+                    'baseline_percentage': round(baseline_avg, 2),
+                    'stress_percentage': round(stress_avg, 2),
+                    'amusement_percentage': round(amusement_avg, 2),
+                    'meditation_percentage': round(meditation_avg, 2)
+                }
+            })
+        
+        # Sortuj listy
+        patients_list.sort(key=lambda x: x['patient_id'])
+        sessions_list.sort(key=lambda x: x['session_id'])
+        
+        return Response({
+            'patients': patients_list,
+            'sessions': sessions_list,
+            'summary': {
+                'total_patients': len(patients_list),
+                'total_sessions': len(sessions_list)
+            }
+        }, status=status.HTTP_200_OK)
