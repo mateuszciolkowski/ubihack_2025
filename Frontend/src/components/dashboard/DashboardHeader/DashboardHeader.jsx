@@ -18,7 +18,7 @@ import AuthContext from '../../../context/AuthContext'
 
 const drawerWidth = 240
 
-function DashboardHeader({ onMenuClick }) {
+function DashboardHeader({ onMenuClick, onViewChange }) {
 	const theme = useTheme()
 	const { user, logoutUser } = useContext(AuthContext)
 	const [anchorEl, setAnchorEl] = useState(null)
@@ -34,6 +34,13 @@ function DashboardHeader({ onMenuClick }) {
 	const handleLogout = () => {
 		handleMenuClose()
 		logoutUser()
+	}
+
+	const handleProfileClick = () => {
+		handleMenuClose()
+		if (onViewChange) {
+			onViewChange('profile')
+		}
 	}
 
 	return (
@@ -146,7 +153,7 @@ function DashboardHeader({ onMenuClick }) {
 							},
 						}}
 					>
-						<MenuItem onClick={handleMenuClose}>
+						<MenuItem onClick={handleProfileClick}>
 							<ListItemIcon>
 								<AccountCircle fontSize="small" />
 							</ListItemIcon>

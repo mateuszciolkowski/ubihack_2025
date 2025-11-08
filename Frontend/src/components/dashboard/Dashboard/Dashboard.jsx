@@ -7,6 +7,7 @@ import DashboardSidebar, { drawerWidth } from '../DashboardSidebar/DashboardSide
 import DashboardHome from '../DashboardHome/DashboardHome'
 import Patients from '../Patients/PatientsView'
 import Calendar from '../Calendar/Calendar'
+import UserProfile from '../UserProfile/UserProfile'
 
 function Dashboard() {
 	const theme = useTheme()
@@ -28,6 +29,8 @@ function Dashboard() {
 				return <Patients />
 			case 'calendar':
 				return <Calendar />
+			case 'profile':
+				return <UserProfile />
 			default:
 				return <DashboardHome />
 		}
@@ -35,7 +38,7 @@ function Dashboard() {
 
 	return (
 		<Box sx={{ display: 'flex', minHeight: '100vh' }}>
-			<DashboardHeader onMenuClick={handleDrawerToggle} />
+			<DashboardHeader onMenuClick={handleDrawerToggle} onViewChange={setCurrentView} />
 
 			{/* === KROK 3: Przekaż stan i funkcję do Sidebar === */}
 			<DashboardSidebar

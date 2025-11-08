@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import Dashboard from './dashboard/Dashboard/Dashboard'
-import LoginPage from './auth/LoginPage'
+import LandingPage from './auth/LandingPage'
 import AuthContext from '../context/AuthContext'
 
 function HomePage() {
@@ -12,7 +12,7 @@ function HomePage() {
 	}
 
 	// Jeśli użytkownik nie jest zalogowany, pokaż stronę logowania
-	return <LoginPage />
+	return <LandingPage />
 }
 
 export default HomePage
