@@ -445,7 +445,7 @@ const PatientDetailView = ({ patientId, onBack }) => {
 										<Typography variant='body2' color='text.secondary' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
 											Imię i Nazwisko
 										</Typography>
-										<Typography variant='body1' sx={{ fontWeight: 600, fontSize: '1.125rem' }}>
+										<Typography variant='body1'>
 											{patientData.first_name} {patientData.last_name}
 										</Typography>
 									</Box>

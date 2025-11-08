@@ -84,9 +84,40 @@ function PatientsView({ onViewChange }) {
 	// ZMODYFIKOWANA funkcja renderowania listy
 	const renderListView = () => (
 		<Box>
-			<Typography variant='h4' component='h1' gutterBottom sx={{ fontWeight: 600 }}>
-				Lista Pacjentów
-			</Typography>
+			{/* Header */}
+			<Box
+				sx={{
+					mb: 4,
+					pb: 3,
+					borderBottom: '2px solid',
+					borderColor: 'rgba(74, 144, 226, 0.2)',
+					position: 'relative',
+					left: { xs: -24, sm: -24, md: -24 },
+					right: { xs: -24, sm: -24, md: -24 },
+					px: { xs: 3, sm: 3, md: 3 },
+					width: { xs: 'calc(100% + 48px)', sm: 'calc(100% + 48px)', md: 'calc(100% + 48px)' },
+				}}>
+				<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+					<Box sx={{ flex: 1 }}>
+						<Typography
+							variant='h4'
+							component='h1'
+							sx={{
+								fontWeight: 700,
+								mb: 0.5,
+								background: 'linear-gradient(135deg, #4A90E2 0%, #3A7BC8 100%)',
+								backgroundClip: 'text',
+								WebkitBackgroundClip: 'text',
+								WebkitTextFillColor: 'transparent',
+							}}>
+							Lista Pacjentów
+						</Typography>
+						<Typography variant='body1' color='text.secondary' sx={{ fontSize: '0.9375rem' }}>
+							Zarządzaj danymi pacjentów
+						</Typography>
+					</Box>
+				</Box>
+			</Box>
 
 			{listLoading ? (
 				<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
@@ -96,13 +127,13 @@ function PatientsView({ onViewChange }) {
 				<Grid container spacing={{ xs: 2, sm: 3 }}>
 					{/* Kafelek dodawania pacjenta - zawsze pierwszy */}
 					{onViewChange && (
-						<Grid item xs={12} sm={6} md={4} lg={3} xl={2}>
+						<Grid item xs={12} sm={6} md={4} lg={4} xl={3}>
 							<AddPatientCard onClick={() => onViewChange('add-patient')} />
 						</Grid>
 					)}
 					{/* Lista pacjentów */}
 					{patients.map(patient => (
-						<Grid item key={patient.id} xs={12} sm={6} md={4} lg={3} xl={2}>
+						<Grid item key={patient.id} xs={12} sm={6} md={4} lg={4} xl={3}>
 							<Patient
 								id={patient.id}
 								firstName={patient.first_name}

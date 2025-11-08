@@ -59,8 +59,9 @@ function DashboardHeader({ onMenuClick, onViewChange }) {
 		>
 			<Toolbar
 				sx={{
-					minHeight: '64px !important',
+					minHeight: '80px !important',
 					px: { xs: 2, sm: 3 },
+					py: 2,
 					maxWidth: { md: `calc(100% - ${drawerWidth}px)` },
 					marginLeft: { md: `${drawerWidth}px` },
 					marginRight: { md: 0 },

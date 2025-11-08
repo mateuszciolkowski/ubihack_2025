@@ -106,7 +106,18 @@ function ReportView({ onBack }) {
 	if (patients.length === 0) {
 		return (
 			<Box>
-				<Box sx={{ mb: 4 }}>
+				<Box
+					sx={{
+						mb: 4,
+						pb: 3,
+						borderBottom: '2px solid',
+						borderColor: 'rgba(74, 144, 226, 0.2)',
+						position: 'relative',
+						left: { xs: -24, sm: -24, md: -24 },
+						right: { xs: -24, sm: -24, md: -24 },
+						px: { xs: 3, sm: 3, md: 3 },
+						width: { xs: 'calc(100% + 48px)', sm: 'calc(100% + 48px)', md: 'calc(100% + 48px)' },
+					}}>
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
 						{onBack && (
 							<IconButton
@@ -140,7 +151,7 @@ function ReportView({ onBack }) {
 								}}>
 								Raport główny
 							</Typography>
-							<Typography variant='body1' color='text.secondary'>
+							<Typography variant='body1' color='text.secondary' sx={{ fontSize: '0.9375rem' }}>
 								Analiza długoterminowa postępów pacjentów
 							</Typography>
 						</Box>
@@ -159,7 +170,18 @@ function ReportView({ onBack }) {
 	return (
 		<Box>
 			{/* Header */}
-			<Box sx={{ mb: 4 }}>
+			<Box
+				sx={{
+					mb: 4,
+					pb: 3,
+					borderBottom: '2px solid',
+					borderColor: 'rgba(74, 144, 226, 0.2)',
+					position: 'relative',
+					left: { xs: -24, sm: -24, md: -24 },
+					right: { xs: -24, sm: -24, md: -24 },
+					px: { xs: 3, sm: 3, md: 3 },
+					width: { xs: 'calc(100% + 48px)', sm: 'calc(100% + 48px)', md: 'calc(100% + 48px)' },
+				}}>
 				<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 						{onBack && (
@@ -194,7 +216,7 @@ function ReportView({ onBack }) {
 								}}>
 								Raport główny
 							</Typography>
-							<Typography variant='body1' color='text.secondary'>
+							<Typography variant='body1' color='text.secondary' sx={{ fontSize: '0.9375rem' }}>
 								Analiza długoterminowa postępów pacjentów
 							</Typography>
 						</Box>
@@ -218,8 +240,11 @@ function ReportView({ onBack }) {
 			<TabPanel value={selectedTab} index={0}>
 				<Card
 					sx={{
-						borderRadius: 2,
-						boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+						borderRadius: 3,
+						border: '1px solid',
+						borderColor: 'rgba(74, 144, 226, 0.12)',
+						background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
+						boxShadow: '0 4px 20px rgba(74, 144, 226, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
 					}}>
 					<CardContent sx={{ p: 4 }}>
 						<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
@@ -259,11 +284,16 @@ function ReportView({ onBack }) {
 						<Card
 							key={patient.id}
 							sx={{
-								borderRadius: 2,
-								boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
-								transition: 'box-shadow 0.3s ease',
+								borderRadius: 3,
+								border: '1px solid',
+								borderColor: 'rgba(74, 144, 226, 0.12)',
+								background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
+								boxShadow: '0 4px 20px rgba(74, 144, 226, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
+								transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 								'&:hover': {
-									boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+									transform: 'translateY(-4px)',
+									boxShadow: '0 8px 30px rgba(74, 144, 226, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08)',
+									borderColor: 'rgba(74, 144, 226, 0.25)',
 								},
 							}}>
 							<CardContent sx={{ p: 4 }}>

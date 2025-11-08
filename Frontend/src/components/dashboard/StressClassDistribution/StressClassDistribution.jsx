@@ -156,46 +156,13 @@ function StressClassDistribution() {
 				.style('filter', 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))')
 		})
 
-		// Dodaj etykiety - większy arc dla lepszego wyświetlania
-		const labelArc = d3.arc().innerRadius(radius * 0.6).outerRadius(radius * 1.1)
-		
-		const labels = arcs
-			.append('text')
-			.attr('transform', d => {
-				const pos = labelArc.centroid(d)
-				const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2
-				// Jeśli segment jest po lewej stronie, przesuń tekst bardziej na zewnątrz
-				if (midAngle > Math.PI) {
-					pos[0] = pos[0] * 1.3
-				}
-				return `translate(${pos})`
-			})
-			.attr('text-anchor', d => {
-				const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2
-				return midAngle > Math.PI ? 'end' : 'start'
-			})
-			.style('font-size', '14px')
-			.style('font-weight', '700')
-			.style('fill', '#fff')
-			.style('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.3)')
-			.attr('opacity', 0)
-			.text(d => {
-				const percent = ((d.data.value / d3.sum(chartData, d => d.value)) * 100).toFixed(0)
-				return percent > 3 ? `${percent}%` : ''
-			})
 
-		// Animacja pojawiania się etykiet
-		labels.transition()
-			.duration(600)
-			.delay((d, i) => i * 150 + 400)
-			.attr('opacity', 1)
-
-		// Legenda - poza wykresem po prawej stronie (zmniejszona)
+		// Legenda - poza wykresem po prawej stronie
 		const legend = svg
 			.append('g')
 			.attr('transform', `translate(${pieWidth + 15}, 20)`)
 
-		// Tytuł legendy (mniejszy)
+		// Tytuł legendy
 		legend
 			.append('text')
 			.attr('x', 0)
@@ -221,17 +188,15 @@ function StressClassDistribution() {
 				.attr('stroke-width', 1.5)
 				.style('filter', 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15))')
 
-			const total = d3.sum(chartData, d => d.value)
-			const percent = ((item.value / total) * 100).toFixed(1)
-
 			legendRow
 				.append('text')
-				.attr('x', 16)
-				.attr('y', 9)
-				.style('font-size', '10px')
-				.style('font-weight', '500')
-				.style('fill', '#666')
-				.text(`${item.name}: ${percent}%`)
+				.attr('x', 18)
+				.attr('y', 10)
+				.attr('dy', '0.35em')
+				.style('font-size', '11px')
+				.style('font-weight', '600')
+				.style('fill', '#333')
+				.text(item.name)
 
 			// Animacja pojawiania się legendy
 			legendRow.transition()
@@ -239,7 +204,7 @@ function StressClassDistribution() {
 				.delay(i * 100 + 600)
 				.attr('opacity', 1)
 
-			// Efekt hover dla legendy (mniejszy)
+			// Efekt hover dla legendy
 			legendRow.on('mouseenter', function() {
 				d3.select(this).select('rect')
 					.transition()

@@ -143,44 +143,110 @@ function StressAlerts() {
 	}
 
 	return (
-		<Card>
-			<CardHeader title="Alerty i powiadomienia" />
+		<Card
+			sx={{
+				borderRadius: 3,
+				border: '1px solid',
+				borderColor: 'rgba(74, 144, 226, 0.12)',
+				background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
+				boxShadow: '0 4px 20px rgba(74, 144, 226, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
+			}}
+		>
+			<CardHeader 
+				title="Alerty i powiadomienia"
+				sx={{
+					'& .MuiCardHeader-title': {
+						fontWeight: 700,
+						fontSize: '1.25rem',
+						background: 'linear-gradient(135deg, #4A90E2 0%, #3A7BC8 100%)',
+						backgroundClip: 'text',
+						WebkitBackgroundClip: 'text',
+						WebkitTextFillColor: 'transparent',
+					},
+				}}
+			/>
 			<CardContent>
 				{/* Pacjenci z wysokim poziomem stresu */}
-				<Box sx={{ mb: 3 }}>
-					<Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-						<WarningIcon color="warning" />
-						Pacjenci wymagający uwagi
-					</Typography>
+				<Box 
+					sx={{ 
+						mb: 4,
+						p: 2.5,
+						borderRadius: 2.5,
+						background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.05) 0%, rgba(255, 152, 0, 0.02) 100%)',
+						border: '1px solid',
+						borderColor: 'rgba(255, 152, 0, 0.15)',
+					}}
+				>
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+						<Box
+							sx={{
+								p: 1,
+								borderRadius: 1.5,
+								background: 'rgba(255, 152, 0, 0.15)',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}
+						>
+							<WarningIcon sx={{ color: '#FF9800', fontSize: '1.5rem' }} />
+						</Box>
+						<Typography variant="h6" sx={{ fontWeight: 700, color: '#FF9800' }}>
+							Pacjenci wymagający uwagi
+						</Typography>
+					</Box>
 					{highStressPatients.length === 0 ? (
-						<Alert severity="success">
-							<AlertTitle>Brak alertów</AlertTitle>
+						<Alert 
+							severity="success"
+							sx={{
+								borderRadius: 2,
+								background: 'rgba(76, 175, 80, 0.05)',
+								border: '1px solid',
+								borderColor: 'rgba(76, 175, 80, 0.2)',
+							}}
+						>
+							<AlertTitle sx={{ fontWeight: 600 }}>Brak alertów</AlertTitle>
 							Wszyscy pacjenci mają poziom stresu w normie.
 						</Alert>
 					) : (
-						<List>
+						<List sx={{ p: 0 }}>
 							{highStressPatients.map((item, index) => (
 								<ListItem
 									key={index}
 									sx={{
-										border: '1px solid',
-										borderColor: 'warning.light',
-										borderRadius: 1,
-										mb: 1,
-										backgroundColor: 'warning.lighter',
+										border: '2px solid',
+										borderColor: 'rgba(255, 152, 0, 0.3)',
+										borderRadius: 2,
+										mb: 1.5,
+										background: 'rgba(255, 255, 255, 0.8)',
+										boxShadow: '0 2px 8px rgba(255, 152, 0, 0.1)',
+										transition: 'all 0.2s ease',
+										'&:hover': {
+											transform: 'translateX(4px)',
+											boxShadow: '0 4px 12px rgba(255, 152, 0, 0.2)',
+											borderColor: 'rgba(255, 152, 0, 0.5)',
+										},
 									}}
 								>
 									<ListItemText
-										primary={item.patientName}
+										primary={
+											<Typography sx={{ fontWeight: 600, fontSize: '1rem', mb: 0.5 }}>
+												{item.patientName}
+											</Typography>
+										}
 										secondary={
-											<Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5 }}>
-												<Typography variant="caption" color="text.secondary">
+											<Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mt: 1, flexWrap: 'wrap' }}>
+												<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
 													{formatDate(item.visitDate)}
 												</Typography>
 												<Chip
 													label={`${item.stressLevel.toFixed(1)}% stresu`}
 													size="small"
-													color="warning"
+													sx={{
+														backgroundColor: '#FF9800',
+														color: 'white',
+														fontWeight: 700,
+														fontSize: '0.75rem',
+													}}
 												/>
 											</Box>
 										}
@@ -192,46 +258,94 @@ function StressAlerts() {
 				</Box>
 
 				{/* Ostatnie wykrycia stresu */}
-				<Box>
-					<Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-						<AccessTimeIcon color="info" />
-						Ostatnie wykrycia stresu
-					</Typography>
+				<Box
+					sx={{
+						p: 2.5,
+						borderRadius: 2.5,
+						background: 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(33, 150, 243, 0.02) 100%)',
+						border: '1px solid',
+						borderColor: 'rgba(33, 150, 243, 0.15)',
+					}}
+				>
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+						<Box
+							sx={{
+								p: 1,
+								borderRadius: 1.5,
+								background: 'rgba(33, 150, 243, 0.15)',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}
+						>
+							<AccessTimeIcon sx={{ color: '#2196F3', fontSize: '1.5rem' }} />
+						</Box>
+						<Typography variant="h6" sx={{ fontWeight: 700, color: '#2196F3' }}>
+							Ostatnie wykrycia stresu
+						</Typography>
+					</Box>
 					{recentStressMoments.length === 0 ? (
-						<Alert severity="info">
-							<AlertTitle>Brak wykryć</AlertTitle>
+						<Alert 
+							severity="info"
+							sx={{
+								borderRadius: 2,
+								background: 'rgba(33, 150, 243, 0.05)',
+								border: '1px solid',
+								borderColor: 'rgba(33, 150, 243, 0.2)',
+							}}
+						>
+							<AlertTitle sx={{ fontWeight: 600 }}>Brak wykryć</AlertTitle>
 							Nie znaleziono ostatnich momentów wykrytego stresu.
 						</Alert>
 					) : (
-						<List>
+						<List sx={{ p: 0 }}>
 							{recentStressMoments.map((moment, index) => (
 								<ListItem
 									key={index}
 									sx={{
-										border: '1px solid',
-										borderColor: 'info.light',
-										borderRadius: 1,
-										mb: 1,
-										backgroundColor: 'info.lighter',
+										border: '2px solid',
+										borderColor: 'rgba(33, 150, 243, 0.3)',
+										borderRadius: 2,
+										mb: 1.5,
+										background: 'rgba(255, 255, 255, 0.8)',
+										boxShadow: '0 2px 8px rgba(33, 150, 243, 0.1)',
+										transition: 'all 0.2s ease',
+										'&:hover': {
+											transform: 'translateX(4px)',
+											boxShadow: '0 4px 12px rgba(33, 150, 243, 0.2)',
+											borderColor: 'rgba(33, 150, 243, 0.5)',
+										},
 									}}
 								>
 									<ListItemText
-										primary={moment.patientName}
+										primary={
+											<Typography sx={{ fontWeight: 600, fontSize: '1rem', mb: 0.5 }}>
+												{moment.patientName}
+											</Typography>
+										}
 										secondary={
-											<Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5, flexWrap: 'wrap' }}>
-												<Typography variant="caption" color="text.secondary">
+											<Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mt: 1, flexWrap: 'wrap' }}>
+												<Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
 													{formatDate(moment.timestamp)}
 												</Typography>
 												<Chip
 													label={`Czas trwania: ${moment.duration}s`}
 													size="small"
 													variant="outlined"
+													sx={{
+														borderColor: '#2196F3',
+														color: '#2196F3',
+														fontWeight: 600,
+													}}
 												/>
 												<Chip
 													label={`Pewność: ${(moment.confidence * 100).toFixed(0)}%`}
 													size="small"
-													variant="outlined"
-													color="info"
+													sx={{
+														backgroundColor: '#2196F3',
+														color: 'white',
+														fontWeight: 700,
+													}}
 												/>
 											</Box>
 										}

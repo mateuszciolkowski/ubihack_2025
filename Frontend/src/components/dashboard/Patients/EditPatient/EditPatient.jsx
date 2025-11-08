@@ -188,8 +188,11 @@ function EditPatient({ patientId, onBack, onPatientUpdated }) {
 
 			<Card
 				sx={{
-					borderRadius: 2,
-					boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)',
+					borderRadius: 3,
+					border: '1px solid',
+					borderColor: 'rgba(74, 144, 226, 0.12)',
+					background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
+					boxShadow: '0 4px 20px rgba(74, 144, 226, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
 				}}>
 				<CardContent sx={{ p: 4 }}>
 					<Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

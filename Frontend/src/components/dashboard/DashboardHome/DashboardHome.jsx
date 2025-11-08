@@ -8,12 +8,12 @@ import StressAlerts from '../StressAlerts'
 
 function DashboardHome({ onViewChange }) {
 	return (
-		<>
+		<Box sx={{ pb: 3 }}>
 			{/* Statystyki */}
 			<DashboardStats />
 
 			{/* Wykresy */}
-			<Grid container spacing={3} sx={{ mb: 3 }}>
+			<Grid container spacing={3} sx={{ mb: 4 }}>
 				<Grid item xs={12} md={8}>
 					<StressTrendChart />
 				</Grid>
@@ -23,7 +23,7 @@ function DashboardHome({ onViewChange }) {
 			</Grid>
 
 			{/* Alerty i informacje */}
-			<Grid container spacing={3} sx={{ mb: 3 }}>
+			<Grid container spacing={3}>
 				<Grid item xs={12} md={8}>
 					<StressAlerts />
 				</Grid>
@@ -31,7 +31,7 @@ function DashboardHome({ onViewChange }) {
 					<UserInfoCard onViewChange={onViewChange} />
 				</Grid>
 			</Grid>
-		</>
+		</Box>
 	)
 }
 
