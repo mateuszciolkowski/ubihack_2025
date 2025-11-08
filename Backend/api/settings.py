@@ -29,8 +29,26 @@ SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5175') 
 
+# 🎯 POPRAWKA: JAWNIE OKREŚL DOZWOLONE ŹRÓDŁA Z FRONTENDU
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL, 
+    "http://localhost:5175", # Dla lokalnego developmentu
+    "http://127.0.0.1:5175", # Dla lokalnego developmentu
+]
+
+if FRONTEND_URL and FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
+     CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
+
+CORS_ALLOW_METHODS = [
+    "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept", "authorization", "content-type", "user-agent",
+    "x-csrftoken", "x-requested-with",
+]
 
 # Application definition
 
@@ -99,6 +117,11 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'api.urls'
 
