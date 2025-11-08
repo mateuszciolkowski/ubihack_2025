@@ -35,10 +35,16 @@ axiosInstance.interceptors.request.use(
 
 function DashboardStats() {
 	const [stats, setStats] = useState([
-		{ title: 'Liczba pacjentów', value: '0', change: '', icon: <People color="primary" />, color: 'primary' },
-		{ title: 'Aktywne wizyty', value: '0', change: '', icon: <Assessment color="success" />, color: 'success' },
-		{ title: 'Średni poziom stresu', value: '0%', change: '', icon: <TrendingUp color="info" />, color: 'info' },
-		{ title: 'Pacjenci wymagający uwagi', value: '0', change: '', icon: <WarningIcon color="warning" />, color: 'warning' },
+		{ title: 'Liczba pacjentów', value: '0', change: '', icon: <People color='primary' />, color: 'primary' },
+		{ title: 'Aktywne wizyty', value: '0', change: '', icon: <Assessment color='success' />, color: 'success' },
+		{ title: 'Średni poziom stresu', value: '0%', change: '', icon: <TrendingUp color='info' />, color: 'info' },
+		{
+			title: 'Pacjenci wymagający uwagi',
+			value: '0',
+			change: '',
+			icon: <WarningIcon color='warning' />,
+			color: 'warning',
+		},
 	])
 	const [loading, setLoading] = useState(true)
 
@@ -46,7 +52,7 @@ function DashboardStats() {
 		const fetchStats = async () => {
 			try {
 				setLoading(true)
-				
+
 				// Pobierz pacjentów
 				const patientsResponse = await axiosInstance.get('/api/patients/')
 				const patients = patientsResponse.data.results || patientsResponse.data || []
@@ -55,7 +61,7 @@ function DashboardStats() {
 				// Pobierz wizyty
 				const visitsResponse = await axiosInstance.get('/api/visits/')
 				const visits = visitsResponse.data.results || visitsResponse.data || []
-				
+
 				// Filtruj wizyty z ostatniego miesiąca
 				const oneMonthAgo = new Date()
 				oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
@@ -74,7 +80,7 @@ function DashboardStats() {
 						const stressPercentage = visit.stress_history.summary.stress_percentage || 0
 						totalStressPercentage += stressPercentage
 						visitsWithStress++
-						
+
 						// Jeśli poziom stresu > 50%, dodaj pacjenta do listy wymagających uwagi
 						if (stressPercentage > 50) {
 							patientsNeedingAttention.add(visit.patient)
@@ -82,9 +88,7 @@ function DashboardStats() {
 					}
 				})
 
-				const avgStress = visitsWithStress > 0 
-					? (totalStressPercentage / visitsWithStress).toFixed(1) 
-					: 0
+				const avgStress = visitsWithStress > 0 ? (totalStressPercentage / visitsWithStress).toFixed(1) : 0
 				const isAvgStress = avgStress > 0 ? avgStress : 52
 
 				// Aktualizuj statystyki
@@ -93,28 +97,28 @@ function DashboardStats() {
 						title: 'Liczba pacjentów',
 						value: totalPatients.toString(),
 						change: '',
-						icon: <People color="primary" />,
+						icon: <People color='primary' />,
 						color: 'primary',
 					},
 					{
 						title: 'Aktywne wizyty',
 						value: recentVisits.length.toString(),
 						change: '',
-						icon: <Assessment color="success" />,
+						icon: <Assessment color='success' />,
 						color: 'success',
 					},
 					{
 						title: 'Średni poziom stresu',
 						value: `${isAvgStress}%`,
 						change: '',
-						icon: <TrendingUp color="info" />,
+						icon: <TrendingUp color='info' />,
 						color: 'info',
 					},
 					{
 						title: 'Pacjenci wymagający uwagi',
 						value: patientsNeedingAttention.size.toString() !== '0' ? patientsNeedingAttention.size.toString() : '3',
 						change: '',
-						icon: <WarningIcon color="warning" />,
+						icon: <WarningIcon color='warning' />,
 						color: 'warning',
 					},
 				])
@@ -148,4 +152,3 @@ function DashboardStats() {
 }
 
 export default DashboardStats
-
