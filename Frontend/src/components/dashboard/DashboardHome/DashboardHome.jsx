@@ -1,24 +1,14 @@
 import React from 'react'
-import { Box, Typography, Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import DashboardStats from '../DashboardStats/DashboardStats'
 import UserInfoCard from '../UserInfoCard/UserInfoCard'
-import QuickActionsCard from '../QuickActionsCard/QuickActionsCard'
 import StressTrendChart from '../StressTrendChart'
 import StressClassDistribution from '../StressClassDistribution'
 import StressAlerts from '../StressAlerts'
 
-function DashboardHome() {
+function DashboardHome({ onViewChange }) {
 	return (
 		<>
-			<Box sx={{ mb: 4 }}>
-				<Typography variant='h4' component='h1' gutterBottom sx={{ fontWeight: 600 }}>
-					Dashboard
-				</Typography>
-				<Typography variant='body1' color='text.secondary'>
-					Przeglądaj statystyki i zarządzaj swoim kontem
-				</Typography>
-			</Box>
-
 			{/* Statystyki */}
 			<DashboardStats />
 
@@ -38,14 +28,7 @@ function DashboardHome() {
 					<StressAlerts />
 				</Grid>
 				<Grid item xs={12} md={4}>
-					<Grid container spacing={3}>
-						<Grid item xs={12}>
-							<UserInfoCard />
-						</Grid>
-						<Grid item xs={12}>
-							<QuickActionsCard />
-						</Grid>
-					</Grid>
+					<UserInfoCard onViewChange={onViewChange} />
 				</Grid>
 			</Grid>
 		</>

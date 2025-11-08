@@ -8,7 +8,7 @@ function AddPatientCard({ onClick }) {
 			onClick={onClick}
 			elevation={3}
 			sx={{
-				p: 2.5,
+				p: { xs: 2, sm: 2.5 },
 				display: 'flex',
 				flexDirection: 'column',
 				alignItems: 'center',
@@ -22,20 +22,28 @@ function AddPatientCard({ onClick }) {
 				},
 				borderRadius: 2,
 				width: '100%',
-				minHeight: '140px',
+				minHeight: { xs: '120px', sm: '140px' },
 				border: '2px dashed',
 				borderColor: 'primary.main',
 			}}>
 			<Avatar
 				sx={{
-					width: 60,
-					height: 60,
-					mb: 1,
+					width: { xs: 50, sm: 60 },
+					height: { xs: 50, sm: 60 },
+					mb: { xs: 0.5, sm: 1 },
 					bgcolor: 'primary.light',
 				}}>
-				<AddIcon sx={{ fontSize: '2.5rem', color: 'primary.dark' }} />
+				<AddIcon sx={{ fontSize: { xs: '2rem', sm: '2.5rem' }, color: 'primary.dark' }} />
 			</Avatar>
-			<Typography variant='h6' component='div' fontWeight={600} color='primary.main'>
+			<Typography 
+				variant='h6' 
+				component='div' 
+				fontWeight={600} 
+				color='primary.main'
+				sx={{
+					fontSize: { xs: '1rem', sm: '1.25rem' },
+					textAlign: 'center',
+				}}>
 				Dodaj pacjenta
 			</Typography>
 		</Paper>

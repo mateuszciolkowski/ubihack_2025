@@ -9,6 +9,7 @@ import Patients from '../Patients/PatientsView'
 import Calendar from '../Calendar/Calendar'
 import UserProfile from '../UserProfile/UserProfile'
 import AddPatient from '../AddPatient'
+import ReportView from '../Report'
 
 function Dashboard() {
 	const theme = useTheme()
@@ -25,7 +26,7 @@ function Dashboard() {
 	const renderView = () => {
 		switch (currentView) {
 			case 'dashboard':
-				return <DashboardHome />
+				return <DashboardHome onViewChange={setCurrentView} />
 			case 'patients':
 				return <Patients onViewChange={setCurrentView} />
 			case 'add-patient':
@@ -34,8 +35,10 @@ function Dashboard() {
 				return <Calendar />
 			case 'profile':
 				return <UserProfile />
+			case 'report':
+				return <ReportView onBack={() => setCurrentView('dashboard')} />
 			default:
-				return <DashboardHome />
+				return <DashboardHome onViewChange={setCurrentView} />
 		}
 	}
 

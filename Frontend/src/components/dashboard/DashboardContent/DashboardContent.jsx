@@ -8,13 +8,6 @@ import QuickActionsCard from '../QuickActionsCard'
 function DashboardContent() {
 	return (
 		<Container maxWidth="xl">
-			<PageHeader
-				title="Dashboard"
-				subtitle="Przeglądaj statystyki i zarządzaj swoim kontem"
-				breadcrumbs={[
-					{ label: 'Dashboard', href: '#' },
-				]}
-			/>
 
 			<DashboardStats />
 

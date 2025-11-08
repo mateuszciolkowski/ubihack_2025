@@ -13,7 +13,7 @@ import {
 	Divider,
 } from '@mui/material'
 // Importuj ikony, których potrzebujesz
-import { Dashboard as DashboardIcon, People, CalendarToday, PersonAdd as PersonAddIcon } from '@mui/icons-material'
+import { Dashboard as DashboardIcon, People, CalendarToday, PersonAdd as PersonAddIcon, Assessment as ReportIcon } from '@mui/icons-material'
 
 const drawerWidth = 240
 
@@ -41,6 +41,11 @@ function DashboardSidebar({ mobileOpen, onMobileClose, currentView, onViewChange
 			text: 'Kalendarz',
 			icon: <CalendarToday />,
 			view: 'calendar',
+		},
+		{
+			text: 'Raporty',
+			icon: <ReportIcon />,
+			view: 'report',
 		},
 	]
 

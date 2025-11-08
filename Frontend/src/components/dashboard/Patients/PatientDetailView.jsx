@@ -17,6 +17,11 @@ import {
 	Chip,
 	Button,
 	TextField,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogContentText,
+	DialogActions,
 } from '@mui/material'
 import {
 	ArrowBack as ArrowBackIcon,
@@ -31,6 +36,7 @@ import {
 	Cancel as CancelIcon,
 	Watch as WatchIcon,
 	Audiotrack as AudioIcon,
+	Delete as DeleteIcon,
 } from '@mui/icons-material'
 import { axiosInstance } from '../../../context/AuthContext'
 import BarChart from './BarChart'
@@ -49,6 +55,9 @@ const PatientDetailView = ({ patientId, onBack }) => {
 	const [editingNotes, setEditingNotes] = useState(false)
 	const [notesValue, setNotesValue] = useState('')
 	const [savingNotes, setSavingNotes] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const [visitToDelete, setVisitToDelete] = useState(null)
+	const [deleting, setDeleting] = useState(false)
 
 	useEffect(() => {
 		setLoading(true)
@@ -280,6 +289,51 @@ const PatientDetailView = ({ patientId, onBack }) => {
 			console.error('Failed to save stress history from audio analysis:', err)
 			alert('Nie udało się zapisać wyników analizy. Spróbuj ponownie.')
 		}
+	}
+
+	const handleDeleteClick = () => {
+		if (selectedVisit) {
+			setVisitToDelete(selectedVisit)
+			setDeleteDialogOpen(true)
+		}
+	}
+
+	const handleDeleteConfirm = async () => {
+		if (!visitToDelete) return
+
+		try {
+			setDeleting(true)
+			await axiosInstance.delete(`/api/visits/${visitToDelete.id}/`)
+			
+			// Odśwież dane pacjenta
+			const response = await axiosInstance.get(`/api/patients/${patientId}/full/`)
+			setPatientData(response.data)
+			
+			// Jeśli usunięto aktualnie wybraną wizytę, wybierz pierwszą dostępną
+			if (selectedVisitId === visitToDelete.id) {
+				if (response.data.visits && response.data.visits.length > 0) {
+					const sortedVisits = [...response.data.visits].sort(
+						(a, b) => new Date(b.visit_date) - new Date(a.visit_date)
+					)
+					setSelectedVisitId(sortedVisits[0].id)
+				} else {
+					setSelectedVisitId('')
+				}
+			}
+			
+			setDeleteDialogOpen(false)
+			setVisitToDelete(null)
+		} catch (error) {
+			console.error('Error deleting visit:', error)
+			alert('Nie udało się usunąć wizyty. Spróbuj ponownie.')
+		} finally {
+			setDeleting(false)
+		}
+	}
+
+	const handleDeleteCancel = () => {
+		setDeleteDialogOpen(false)
+		setVisitToDelete(null)
 	}
 
 	// Jeśli pokazujemy formularz dodawania wizyty
@@ -530,6 +584,24 @@ const PatientDetailView = ({ patientId, onBack }) => {
 										{/* Szczegóły wybranej wizyty */}
 										{selectedVisit && (
 											<Box>
+												{/* Nagłówek z przyciskiem usuwania */}
+												<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+													<Typography variant='subtitle1' sx={{ fontWeight: 600, color: '#4A90E2' }}>
+														Szczegóły wizyty
+													</Typography>
+													<IconButton
+														onClick={handleDeleteClick}
+														sx={{
+															color: '#E24A4A',
+															'&:hover': {
+																backgroundColor: 'rgba(226, 74, 74, 0.08)',
+															},
+														}}
+														size="small">
+														<DeleteIcon />
+													</IconButton>
+												</Box>
+												<Divider sx={{ mb: 3 }} />
 												{/* Podsumowanie stresu */}
 												{selectedVisit.stress_history?.summary && (
 													<Box sx={{ mb: 3 }}>
@@ -588,6 +660,56 @@ const PatientDetailView = ({ patientId, onBack }) => {
 																</Paper>
 															</Grid>
 														</Grid>
+													</Box>
+												)}
+
+												{/* Wykres historii stresu lub wgrywanie danych z bransoletki */}
+												{selectedVisit.stress_history ? (
+													<Box sx={{ mb: 3 }}>
+														<Typography
+															variant='subtitle1'
+															sx={{
+																fontWeight: 600,
+																mb: 2,
+																color: '#4A90E2',
+															}}>
+															Historia stresu dla wybranej wizyty
+														</Typography>
+														<Paper
+															variant='outlined'
+															sx={{
+																p: 2,
+																borderRadius: 2,
+																borderColor: 'rgba(74, 144, 226, 0.3)',
+																display: 'flex',
+																justifyContent: 'center',
+																overflow: 'auto',
+															}}>
+															<BarChart data={selectedVisit.stress_history} />
+														</Paper>
+													</Box>
+												) : (
+													<Box sx={{ mb: 3 }}>
+														<Typography
+															variant='subtitle1'
+															sx={{
+																fontWeight: 600,
+																mb: 1.5,
+																display: 'flex',
+																alignItems: 'center',
+																gap: 1,
+																color: '#4A90E2',
+															}}>
+															<WatchIcon />
+															Dane z bransoletki
+														</Typography>
+														<Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+															Brak danych o historii stresu dla tej wizyty. Wgraj dane z bransoletki, aby wygenerować analizę stresu.
+														</Alert>
+														<BraceletDataUpload
+															visitId={selectedVisit.id}
+															onUpload={handleBraceletDataUpload}
+														/>
 													</Box>
 												)}
 
@@ -739,56 +861,6 @@ const PatientDetailView = ({ patientId, onBack }) => {
 													</Box>
 												)}
 
-												{/* Wykres historii stresu lub wgrywanie danych z bransoletki */}
-												{selectedVisit.stress_history ? (
-													<Box sx={{ mb: 3 }}>
-														<Typography
-															variant='subtitle1'
-															sx={{
-																fontWeight: 600,
-																mb: 2,
-																color: '#4A90E2',
-															}}>
-															Historia stresu dla wybranej wizyty
-														</Typography>
-														<Paper
-															variant='outlined'
-															sx={{
-																p: 2,
-																borderRadius: 2,
-																borderColor: 'rgba(74, 144, 226, 0.3)',
-																display: 'flex',
-																justifyContent: 'center',
-																overflow: 'auto',
-															}}>
-															<BarChart data={selectedVisit.stress_history} />
-														</Paper>
-													</Box>
-												) : (
-													<Box sx={{ mb: 3 }}>
-														<Typography
-															variant='subtitle1'
-															sx={{
-																fontWeight: 600,
-																mb: 1.5,
-																display: 'flex',
-																alignItems: 'center',
-																gap: 1,
-																color: '#4A90E2',
-															}}>
-															<WatchIcon />
-															Dane z bransoletki
-														</Typography>
-														<Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
-															Brak danych o historii stresu dla tej wizyty. Wgraj dane z bransoletki, aby wygenerować analizę stresu.
-														</Alert>
-														<BraceletDataUpload
-															visitId={selectedVisit.id}
-															onUpload={handleBraceletDataUpload}
-														/>
-													</Box>
-												)}
-
 												{/* Nagranie audio - zawsze dostępne */}
 												<Box sx={{ mb: 3 }}>
 													<Typography
@@ -823,6 +895,57 @@ const PatientDetailView = ({ patientId, onBack }) => {
 					</Grid>
 				</Grid>
 			)}
+
+			{/* Dialog potwierdzenia usunięcia wizyty */}
+			<Dialog
+				open={deleteDialogOpen}
+				onClose={handleDeleteCancel}
+				PaperProps={{
+					sx: {
+						borderRadius: 2,
+					},
+				}}>
+				<DialogTitle sx={{ fontWeight: 600, color: '#E24A4A' }}>
+					Potwierdź usunięcie
+				</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						Czy na pewno chcesz usunąć wizytę z dnia{' '}
+						<strong>{visitToDelete ? formatDateTime(visitToDelete.visit_date) : ''}</strong>?
+						<br />
+						<br />
+						Ta operacja jest nieodwracalna i usunie wszystkie powiązane dane (nagrania, dane z bransoletki, notatki).
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions sx={{ p: 2 }}>
+					<Button
+						onClick={handleDeleteCancel}
+						disabled={deleting}
+						sx={{
+							borderRadius: 2,
+							textTransform: 'none',
+							fontWeight: 600,
+						}}>
+						Anuluj
+					</Button>
+					<Button
+						onClick={handleDeleteConfirm}
+						disabled={deleting}
+						variant="contained"
+						color="error"
+						sx={{
+							borderRadius: 2,
+							textTransform: 'none',
+							fontWeight: 600,
+							backgroundColor: '#E24A4A',
+							'&:hover': {
+								backgroundColor: '#C62828',
+							},
+						}}>
+						{deleting ? 'Usuwanie...' : 'Usuń'}
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</Box>
 	)
 }
