@@ -11,69 +11,20 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# --- KONFIGURACJA ZMIENNYCH ŚRODOWISKOWYCH DLA COOLIFY ---
-# Coolify musi ustawić te zmienne w usłudze backendowej (API)!
-HOST_URL = os.getenv('HOST_URL', '127.0.0.1') 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5175') 
 DJANGO_DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True' # Dynamiczne ustawienie DEBUG
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DJANGO_DEBUG
 
-# 🎯 POPRAWKA: Dynamiczny ALLOWED_HOSTS
-ALLOWED_HOSTS = [
-    HOST_URL,
-    '127.0.0.1',
-    'localhost',
-    # Dodajemy domenę frontendu (bez protokołu)
-    FRONTEND_URL.replace("https://", "").replace("http://", ""), 
-    # Używamy '*' w trybie DEBUG, aby ułatwić debugowanie w Coolify
-    *([ '*' ] if DEBUG else [])
-]
+DEBUG = True
 
-# --- KONFIGURACJA CORS ---
-# 🎯 JAWNIE OKREŚL DOZWOLONE ŹRÓDŁA Z FRONTENDU
-CORS_ALLOWED_ORIGINS = [
-    FRONTEND_URL, 
-    # Adresy lokalne dla deweloperki
-    "http://localhost:5175",
-    "http://127.0.0.1:5175", 
-    "http://localhost:5173", # Dodano z uwagi na logi
-    "http://127.0.0.1:5173", # Dodano z uwagi na logi
-]
+ALLOWED_HOSTS = ['*']
 
-# Upewnienie się, że adres z ENVa trafił na listę
-if FRONTEND_URL and FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
-     CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
-
-CORS_ALLOW_METHODS = [
-    "DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT",
-]
-
-CORS_ALLOW_HEADERS = [
-    "accept", "authorization", "content-type", "user-agent",
-    "x-csrftoken", "x-requested-with",
-]
-
+# CORS Configuration - Development mode (allow all)
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-# --- KONFIGURACJA SSL PROXY (Usunięcie Konfliktów HTTP/HTTPS) ---
-# Używamy zmiennej środowiskowej do poprawnego odczytania protokołu
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_X_FORWARDED_HOST = True
-
-# 🚨 KLUCZOWA POPRAWKA DLA HTTP (Sslip.io)
-# Wymuszamy FALSE, aby Django nie blokowało zapytań z powodu braku HTTPS
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-
-# 🎯 CSRF TRUSTED ORIGINS (Dla API i zapobiegania 400 Bad Request)
-# Zezwól na wszystkie adresy z CORS_ALLOWED_ORIGINS
-CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith('http')]
 
 
 # Application definition
@@ -99,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

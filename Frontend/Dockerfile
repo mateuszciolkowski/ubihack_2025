@@ -48,11 +48,11 @@ USER nodejs
 ENV NODE_ENV=production
 
 # Wystawienie portu na 5175
-EXPOSE 5175 
+EXPOSE 5200
 
 # Dodanie Health Check na porcie 5175
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:5175/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5200/ || exit 1
 
 # Uruchomienie aplikacji za pomocą 'serve' na porcie 5175
-CMD ["serve", "-s", "dist", "-l", "5175"]
+CMD ["serve", "-s", "dist", "-l", "5200"]
