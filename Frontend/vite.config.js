@@ -1,35 +1,48 @@
+// vite.config.js
+
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-    // Ładujemy zmienne środowiskowe z pliku .env.[mode] lub .env
+export default defineConfig(({ mode }) => { 
+    // Ładujemy zmienne środowiskowe
     const env = loadEnv(mode, process.cwd(), '');
+    
+    // Adres API dla trybu development (lokalne proxy)
+    const DEV_API_TARGET = 'http://localhost:6543';
+    
+    // W trybie produkcyjnym MUSIMY mieć ustawiony VITE_API_BASE_URL
+    const PROD_API_TARGET = env.VITE_API_BASE_URL;
+    
+    // Ustawiamy cel proxy tylko dla trybu development
+    const PROXY_TARGET = mode === 'development' ? DEV_API_TARGET : PROD_API_TARGET;
+    
+    // Sprawdź czy mamy ustawiony adres API w trybie produkcyjnym
+    if (mode === 'production' && !PROD_API_TARGET) {
+        console.error('BŁĄD: W trybie produkcyjnym wymagana jest zmienna VITE_API_BASE_URL wskazująca na adres backendu!');
+    }
 
-    // Używamy zmiennej VITE_API_BASE_URL (którą ustawimy w Dockerze)
-    const API_TARGET = env.VITE_API_BASE_URL || 'http://localhost:6543';
+    // ... (reszta kodu bez zmian)
 
     return {
         plugins: [react()],
         server: {
             proxy: {
-                // Konfiguracja dla ścieżek /api
                 '/api': {
-                    target: API_TARGET,
+                    target: PROXY_TARGET, 
                     changeOrigin: true,
                     secure: false,
                 },
-                // Konfiguracja dla ścieżek /auth
                 '/auth': {
-                    target: API_TARGET,
+                    target: PROXY_TARGET,
                     changeOrigin: true,
                     secure: false,
                 },
             },
         },
-        // Definiujemy zmienną globalnie, aby była dostępna w kodzie JS po zbudowaniu
+        // Definiujemy zmienną środowiskową dla kodu JS
+        // W trybie dev używamy proxy, w produkcji używamy zmiennej środowiskowej lub względnej ścieżki
         define: {
-            'process.env.VITE_API_BASE_URL': JSON.stringify(API_TARGET)
+            'process.env.VITE_API_BASE_URL': JSON.stringify(mode === 'development' ? '' : PROD_API_TARGET)
         }
     };
 });

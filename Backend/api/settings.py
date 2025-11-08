@@ -25,26 +25,28 @@ SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 DEBUG = DJANGO_DEBUG
 
 # 🎯 POPRAWKA: Dynamiczny ALLOWED_HOSTS
-# Dodajemy HOST_URL z Coolify, aby uniknąć błędu DisallowedHost.
 ALLOWED_HOSTS = [
     HOST_URL,
     '127.0.0.1',
     'localhost',
-    # Dodanie domeny frontendu, jeśli jest w innej subdomenie (opcjonalne, ale bezpieczne)
+    # Dodajemy domenę frontendu (bez protokołu)
     FRONTEND_URL.replace("https://", "").replace("http://", ""), 
-    # Używamy '*' w trybie DEBUG
+    # Używamy '*' w trybie DEBUG, aby ułatwić debugowanie w Coolify
     *([ '*' ] if DEBUG else [])
 ]
 
 # --- KONFIGURACJA CORS ---
-# 🎯 POPRAWKA: JAWNIE OKREŚL DOZWOLONE ŹRÓDŁA Z FRONTENDU
+# 🎯 JAWNIE OKREŚL DOZWOLONE ŹRÓDŁA Z FRONTENDU
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL, 
-    "http://localhost:5175", # Dla lokalnego developmentu
-    "http://127.0.0.1:5175", # Dla lokalnego developmentu
+    # Adresy lokalne dla deweloperki
+    "http://localhost:5175",
+    "http://127.0.0.1:5175", 
+    "http://localhost:5173", # Dodano z uwagi na logi
+    "http://127.0.0.1:5173", # Dodano z uwagi na logi
 ]
 
-# Aby obsłużyć przypadek, gdy zmienna Coolify jest pusta
+# Upewnienie się, że adres z ENVa trafił na listę
 if FRONTEND_URL and FRONTEND_URL not in CORS_ALLOWED_ORIGINS:
      CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
@@ -59,11 +61,20 @@ CORS_ALLOW_HEADERS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# 🎯 POPRAWKA: Konfiguracja dla proxy Coolify (HTTPS)
+# --- KONFIGURACJA SSL PROXY (Usunięcie Konfliktów HTTP/HTTPS) ---
+# Używamy zmiennej środowiskowej do poprawnego odczytania protokołu
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+
+# 🚨 KLUCZOWA POPRAWKA DLA HTTP (Sslip.io)
+# Wymuszamy FALSE, aby Django nie blokowało zapytań z powodu braku HTTPS
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+# 🎯 CSRF TRUSTED ORIGINS (Dla API i zapobiegania 400 Bad Request)
+# Zezwól na wszystkie adresy z CORS_ALLOWED_ORIGINS
+CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.startswith('http')]
+
 
 # Application definition
 INSTALLED_APPS = [

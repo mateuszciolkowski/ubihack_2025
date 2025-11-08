@@ -12,14 +12,8 @@ echo "Running migrations..."
 python manage.py makemigrations
 python manage.py migrate
 
-# Create superuser if it doesn't exist
-echo "Creating superuser..."
-    python manage.py createsuperuser \
-        --email $DJANGO_SUPERUSER_EMAIL \
-        --username $DJANGO_SUPERUSER_USERNAME \
-        --noinput
-    echo "Superuser created successfully!"
+
 
 # Start server
 echo "Starting server..."
-python manage.py runserver 0.0.0.0:6543 
+exec gunicorn api.wsgi:application -b 0.0.0.0:6543
