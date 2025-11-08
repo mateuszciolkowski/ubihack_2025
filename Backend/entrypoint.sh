@@ -16,4 +16,4 @@ python manage.py migrate
 
 # Start server
 echo "Starting server..."
-python manage.py runserver 0.0.0.0:6543 
+exec gunicorn api.wsgi:application -b 0.0.0.0:6543
