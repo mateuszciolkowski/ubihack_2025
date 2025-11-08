@@ -9,7 +9,8 @@ const API_URLS = {
 }
 
 // Configure axios with base URL for development
-const axiosInstance = axios.create({
+// ========= ZMIANA TUTAJ: Dodano "export" =========
+export const axiosInstance = axios.create({
 	baseURL: import.meta.env.DEV ? '' : '', // In dev, use proxy; in prod, set your API URL
 	headers: {
 		'Content-Type': 'application/json',
@@ -52,7 +53,15 @@ axiosInstance.interceptors.response.use(
 				if (tokens) {
 					const parsedTokens = JSON.parse(tokens)
 					if (parsedTokens?.refresh) {
-						const response = await axiosInstance.post(API_URLS.refresh, {
+						// Użyj nowej, czystej instancji axios TYLKO do odświeżenia tokena,
+						// aby uniknąć pętli interceptora
+						const refreshAxiosInstance = axios.create({
+							baseURL: import.meta.env.DEV ? '' : '',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+						})
+						const response = await refreshAxiosInstance.post(API_URLS.refresh, {
 							refresh: parsedTokens.refresh,
 						})
 
@@ -63,6 +72,7 @@ axiosInstance.interceptors.response.use(
 							}
 							localStorage.setItem('authTokens', JSON.stringify(newTokens))
 							originalRequest.headers.Authorization = `Bearer ${newTokens.access}`
+							// Ponów oryginalne żądanie z nowym tokenem
 							return axiosInstance(originalRequest)
 						}
 					}
@@ -83,6 +93,7 @@ const AuthContext = createContext()
 export default AuthContext
 
 export const AuthProvider = ({ children }) => {
+	// ... (reszta pliku pozostaje bez zmian) ...
 	// 2. Wczytaj tokeny z localStorage przy starcie aplikacji
 	const [authTokens, setAuthTokens] = useState(() =>
 		localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null
