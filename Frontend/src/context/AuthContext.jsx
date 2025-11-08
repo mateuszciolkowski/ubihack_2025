@@ -11,7 +11,7 @@ const API_URLS = {
 // Configure axios with base URL for development
 // ========= ZMIANA TUTAJ: Dodano "export" =========
 export const axiosInstance = axios.create({
-	baseURL: import.meta.env.DEV ? '' : '', // In dev, use proxy; in prod, set your API URL
+	baseURL: import.meta.env.VITE_API_BASE_URL || '',
 	headers: {
 		'Content-Type': 'application/json',
 	},
