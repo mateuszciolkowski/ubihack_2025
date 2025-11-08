@@ -58,8 +58,9 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    # Dodaj tu adresy, które są zaufane (np. Twój Frontend URL)
-    'nks0os084ogg4oogcwcss8cs.92.5.118.210.sslip.io',
+    os.getenv('FRONTEND_URL', 'http://localhost:5175'), 
+    "http://localhost:5173", # 🎯 DODAJ TĘ LINIĘ
+    "http://127.0.0.1:5173", # I TĘ DLA PEWNOŚCI
 ]
 
 CORS_ALLOW_CREDENTIALS = True
