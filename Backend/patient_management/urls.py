@@ -1,12 +1,23 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PatientViewSet, VisitViewSet, PatientWithVisitsView
+from .views import (
+    PatientViewSet, 
+    VisitViewSet, 
+    PatientWithVisitsView,
+    SessionViewSet,
+    CreateSessionSimulationView,
+    AIAnalysisServiceView
+)
 
 router = DefaultRouter()
 router.register(r'patients', PatientViewSet)
 router.register(r'visits', VisitViewSet)
+router.register(r'sessions', SessionViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Specyficzne ścieżki muszą być przed routerem, aby uniknąć konfliktów
+    path('sessions/user/<int:user_id>/simulate/', CreateSessionSimulationView.as_view(), name='create-session-simulation'),
+    path('sessions/<int:session_id>/analyze/', AIAnalysisServiceView.as_view(), name='ai-analysis-service'),
     path('patients/<int:pk>/full/', PatientWithVisitsView.as_view(), name='patient-with-visits'),
+    path('', include(router.urls)),
 ]
