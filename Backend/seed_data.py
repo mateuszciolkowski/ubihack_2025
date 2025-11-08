@@ -3,11 +3,15 @@ import django
 from datetime import date, timedelta
 from django.utils import timezone
 import random
+from openai import OpenAI
 from faker import Faker
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # --- WAŻNE: Ustawienie środowiska Django ---
-# Zmień 'nazwa_twojego_projektu.settings' na ścieżkę do Twojego pliku settings.py
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 django.setup()
 
 # --- Import Twoich Modeli ---
@@ -60,6 +64,49 @@ def generate_stress_history(visit_date):
     # Sortowanie nie jest już konieczne, ponieważ czas jest inkrementowany w porządku
     return history
 
+def generate_openai_text(prompt, max_tokens=300):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Jesteś psychologiem analizującym dane o poziomie stresu pacjenta."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=max_tokens
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"❌ Błąd OpenAI: {e}")
+        return "Opis wygenerowany automatycznie."
+
+def create_prompts_from_stress_data(stress_data):
+    levels = [entry["stress_level"] for entry in stress_data]
+    timestamps = [entry["timestamp"] for entry in stress_data]
+
+    avg = sum(levels) / len(levels)
+    max_level = max(levels)
+    min_level = min(levels)
+    spikes = sum(1 for i in range(1, len(levels)) if levels[i] - levels[i-1] >= 4)
+
+    summary_prompt = (
+        f"Na podstawie danych o poziomie stresu pacjenta:\n"
+        f"- Średni poziom stresu: {avg:.1f}\n"
+        f"- Maksymalny poziom: {max_level}\n"
+        f"- Minimalny poziom: {min_level}\n"
+        f"- Liczba gwałtownych skoków stresu: {spikes}\n"
+        f"Stwórz krótkie podsumowanie sesji w 2-3 zdaniach."
+    )
+
+    notes_prompt = (
+        f"Analizujesz dane stresu pacjenta z sesji terapeutycznej. Dane obejmują {len(levels)} pomiarów "
+        f"od {timestamps[0]} do {timestamps[-1]} z poziomami stresu od {min_level} do {max_level}, "
+        f"średnia wynosi {avg:.1f}, a liczba skoków stresu to {spikes}. "
+        f"Napisz notatkę psychologiczną (4-5 zdań) opisującą możliwe przyczyny, obserwacje i zalecenia."
+    )
+
+    return summary_prompt, notes_prompt
+
 
 def run_seed():
     """Główna funkcja do dodawania losowych danych."""
@@ -106,13 +153,17 @@ def run_seed():
             stress_data = generate_stress_history(visit_date)
             
             try:
+                
+                summary_prompt, notes_prompt = create_prompts_from_stress_data(stress_data)
+
                 Visit.objects.create(
                     patient=patient,
                     visit_date=visit_date,
                     stress_history=stress_data,
-                    psychologist_notes=fake.text(max_nb_chars=500),
-                    ai_summary=fake.text(max_nb_chars=200)
+                    psychologist_notes=generate_openai_text(notes_prompt),
+                    ai_summary=generate_openai_text(summary_prompt, max_tokens=150)
                 )
+
                 print(f"   -> Dodano wizytę {v+1}/{num_visits} z {len(stress_data)} wpisami stresu (co 10s).")
             
             except Exception as e:
