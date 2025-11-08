@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Patient, Visit, Session
+from .models import Patient, Visit
 
 
 @admin.register(Patient)
@@ -14,10 +14,3 @@ class VisitAdmin(admin.ModelAdmin):
     list_filter = ['visit_date']
     search_fields = ['patient__first_name', 'patient__last_name']
 
-
-@admin.register(Session)
-class SessionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'visit', 'total_duration_seconds', 'step_size', 'created_at']
-    list_filter = ['created_at', 'visit', 'user']
-    search_fields = ['id', 'user__email', 'user__first_name', 'user__last_name']
-    readonly_fields = ['created_at', 'updated_at']

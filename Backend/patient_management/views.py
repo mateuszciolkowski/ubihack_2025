@@ -8,24 +8,26 @@ from drf_spectacular.utils import extend_schema, OpenApiExample
 from django.contrib.auth import get_user_model
 from collections import defaultdict
 
-from .models import Patient, Visit, Session
+from .models import Patient, Visit
 
 User = get_user_model()
 from .serializers import (
-    PatientSerializer, 
-    VisitSerializer, 
-    SessionSerializer,
-    SessionSimulationInputSerializer
+    PatientSerializer,
+    VisitSerializer,
+    VisitSimulationInputSerializer,
 )
 from .services import create_session_simulation, ai_analysis_service
+from django.utils import timezone
 
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
 
+
 class VisitViewSet(viewsets.ModelViewSet):
     queryset = Visit.objects.all()
     serializer_class = VisitSerializer
+
 
 class PatientWithVisitsView(APIView):
     serializer_class = PatientSerializer
@@ -39,33 +41,26 @@ class PatientWithVisitsView(APIView):
         return Response(serializer.data)
 
 
-class SessionViewSet(viewsets.ModelViewSet):
-    """ViewSet dla modelu Session"""
-    queryset = Session.objects.all()
-    serializer_class = SessionSerializer
-    permission_classes = [IsAuthenticated]
-
-
 class CreateSessionSimulationView(APIView):
     """
     Endpoint do tworzenia symulacji sesji.
     Generuje timeline_data i zapisuje dane do bazy.
     """
     permission_classes = [IsAuthenticated]
-    serializer_class = SessionSimulationInputSerializer
+    serializer_class = VisitSimulationInputSerializer
     parser_classes = [JSONParser, MultiPartParser, FormParser]
     
     @extend_schema(
-        summary="Utwórz sesję z symulacją dla użytkownika",
+    summary="Utwórz wizytę z symulacją dla pacjenta",
         description="""
         Generuje symulowane dane sesji używając generate_simulated_data z data_simulator.
         Dane biometryczne są klasyfikowane przez model ML.
         
         Parametry:
-        - user_id: ID użytkownika w URL (wymagane)
+    - patient_id: ID pacjenta w URL (wymagane)
         
         Parametry (opcjonalne w body):
-        - visit_id: ID wizyty do powiązania
+    - visit_date: Data wizyty (opcjonalna)
         - duration_sec: Długość symulacji w sekundach (domyślnie 300)
         
         Endpoint automatycznie:
@@ -76,48 +71,38 @@ class CreateSessionSimulationView(APIView):
         - Oblicza step_size, total_duration_seconds i procenty stanów
         - Zapisuje wszystko do bazy danych
         """,
-        request=SessionSimulationInputSerializer,
+        request=VisitSimulationInputSerializer,
         responses={
-            201: SessionSerializer,
-            404: {'description': 'Użytkownik nie istnieje'},
+            201: VisitSerializer,
+            404: {'description': 'Pacjent nie istnieje'},
         }
     )
-    def post(self, request, user_id):
-        # Znajdź użytkownika
+    def post(self, request, patient_id):
+        # Znajdź pacjenta
         try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
+            patient = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
             return Response(
-                {"detail": f"User o ID {user_id} nie istnieje"},
+                {"detail": f"Patient o ID {patient_id} nie istnieje"},
                 status=status.HTTP_404_NOT_FOUND
             )
         
         # Waliduj dane wejściowe
-        serializer = SessionSimulationInputSerializer(data=request.data)
+        serializer = VisitSimulationInputSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         data = serializer.validated_data
         duration_sec = data.get('duration_sec', 300)
         
-        # Pobierz visit jeśli podano visit_id
-        visit = None
-        if data.get('visit_id'):
-            try:
-                visit = Visit.objects.get(pk=data['visit_id'])
-            except Visit.DoesNotExist:
-                return Response(
-                    {"detail": f"Visit o ID {data['visit_id']} nie istnieje"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-        
         # Generuj timeline_data używając generate_simulated_data i klasyfikacji
         timeline_data, metadata = create_session_simulation(duration_sec=duration_sec)
-        
-        # Utwórz sesję dla użytkownika z wygenerowanymi danymi
-        session = Session.objects.create(
-            user=user,
-            visit=visit,
+
+        # Utwórz wizytę przypisaną do pacjenta
+        visit_date = data.get('visit_date') or timezone.now()
+        visit = Visit.objects.create(
+            patient=patient,
+            visit_date=visit_date,
             step_size=metadata['step_size'],
             total_duration_seconds=metadata['total_duration_seconds'],
             baseline_percentage=metadata['baseline_percentage'],
@@ -126,11 +111,11 @@ class CreateSessionSimulationView(APIView):
             meditation_percentage=metadata['meditation_percentage'],
             timeline_data=timeline_data
         )
-        
-        # Zwróć sesję wraz z timeline
-        response_serializer = SessionSerializer(session)
+
+        # Zwróć wizytę wraz z timeline
+        response_serializer = VisitSerializer(visit)
         return Response({
-            "session": response_serializer.data,
+            "visit": response_serializer.data,
             "timeline": timeline_data
         }, status=status.HTTP_201_CREATED)
 
@@ -141,68 +126,69 @@ class AIAnalysisServiceView(APIView):
     Używa OpenAI do stworzenia narracyjnego podsumowania.
     """
     permission_classes = [IsAuthenticated]
-    serializer_class = SessionSerializer
+    serializer_class = VisitSerializer
     
     @extend_schema(
-        summary="Generuj analizę AI dla sesji",
+    summary="Generuj analizę AI dla wizyty",
         description="""
         Analizuje dane sesji i generuje narracyjne podsumowanie używając OpenAI.
         Wymaga, aby sesja miała już wygenerowane timeline_data.
         
         Parametry:
-        - session_id: ID sesji do analizy (w URL)
+    - visit_id: ID wizyty do analizy (w URL)
         
         Zwraca:
         - session: Pełne dane sesji z wygenerowanym ai_summary_story
         - ai_summary: Wygenerowane podsumowanie
         """,
         responses={
-            200: SessionSerializer,
-            400: {'description': 'Sesja nie ma danych timeline'},
-            404: {'description': 'Sesja nie istnieje'},
+            200: VisitSerializer,
+            400: {'description': 'Wizyta nie ma danych timeline'},
+            404: {'description': 'Wizyta nie istnieje'},
             500: {'description': 'Błąd podczas generowania analizy AI'},
         }
     )
-    def post(self, request, session_id):
+    def post(self, request, visit_id):
         try:
-            session = Session.objects.get(pk=session_id)
-        except Session.DoesNotExist:
+            visit = Visit.objects.get(pk=visit_id)
+        except Visit.DoesNotExist:
             return Response(
-                {"detail": f"Session o ID {session_id} nie istnieje"},
+                {"detail": f"Visit o ID {visit_id} nie istnieje"},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         # Sprawdź czy timeline_data istnieje
-        if not session.timeline_data:
+        if not (visit.timeline_data or visit.stress_history):
             return Response(
-                {"detail": "Session nie ma wygenerowanych danych timeline. Najpierw utwórz symulację."},
+                {"detail": "Wizyta nie ma wygenerowanych danych timeline. Najpierw utwórz symulację."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Przygotuj dane do analizy
         session_data = {
-            'timeline_data': session.timeline_data,
-            'total_duration_seconds': session.total_duration_seconds,
-            'baseline_percentage': session.baseline_percentage,
-            'stress_percentage': session.stress_percentage,
-            'amusement_percentage': session.amusement_percentage,
-            'meditation_percentage': session.meditation_percentage
+            'timeline_data': visit.timeline_data or visit.stress_history or [],
+            'total_duration_seconds': visit.total_duration_seconds,
+            'baseline_percentage': visit.baseline_percentage,
+            'stress_percentage': visit.stress_percentage,
+            'amusement_percentage': visit.amusement_percentage,
+            'meditation_percentage': visit.meditation_percentage
         }
-        
+
         try:
             # Generuj analizę AI
             ai_summary = ai_analysis_service(session_data)
-            
-            # Zaktualizuj sesję
-            session.ai_summary_story = ai_summary
-            session.save()
-            
-            response_serializer = SessionSerializer(session)
+
+            # Zaktualizuj wizytę
+            visit.ai_summary_story = ai_summary
+            visit.ai_summary = ai_summary
+            visit.save()
+
+            response_serializer = VisitSerializer(visit)
             return Response({
-                "session": response_serializer.data,
+                "visit": response_serializer.data,
                 "ai_summary": ai_summary
             }, status=status.HTTP_200_OK)
-        
+
         except Exception as e:
             return Response(
                 {"detail": f"Błąd podczas generowania analizy AI: {str(e)}"},
@@ -277,8 +263,8 @@ class StressClassDistributionView(APIView):
         
         Oblicza procentowy udział klas stresu dla każdego pacjenta i każdej sesji.
         """
-        # Pobierz wszystkie sesje, które mają przypisaną wizytę (a więc i pacjenta)
-        sessions = Session.objects.filter(visit__isnull=False).select_related('visit', 'visit__patient')
+        # Pobierz wszystkie wizyty (każda wizyta ma pacjenta)
+        visits = Visit.objects.select_related('patient').all()
         
         # Struktury do przechowywania danych
         patients_data = defaultdict(lambda: {
@@ -296,28 +282,28 @@ class StressClassDistributionView(APIView):
         sessions_list = []
         
         # Przetwórz każdą sesję
-        for session in sessions:
-            patient = session.visit.patient
+        for visit in visits:
+            patient = visit.patient
             patient_id = patient.id
             patient_name = f"{patient.first_name} {patient.last_name}"
-            
-            # Pobierz procenty z sesji (jeśli są null, użyj 0)
-            baseline = session.baseline_percentage or 0.0
-            stress = session.stress_percentage or 0.0
-            amusement = session.amusement_percentage or 0.0
-            meditation = session.meditation_percentage or 0.0
-            
-            # Czas trwania sesji (używany jako waga)
-            duration = session.total_duration_seconds or 0
-            
-            # Dodaj dane sesji do listy
+
+            # Pobierz procenty z wizyty (jeśli są null, użyj 0)
+            baseline = visit.baseline_percentage or 0.0
+            stress = visit.stress_percentage or 0.0
+            amusement = visit.amusement_percentage or 0.0
+            meditation = visit.meditation_percentage or 0.0
+
+            # Czas trwania wizyty (używany jako waga)
+            duration = visit.total_duration_seconds or 0
+
+            # Dodaj dane wizyty do listy (nazwa pola session_id pozostawiona dla kompatybilności)
             sessions_list.append({
-                'session_id': session.id,
+                'session_id': visit.id,
                 'patient_id': patient_id,
                 'patient_name': patient_name,
-                'visit_id': session.visit.id if session.visit else None,
+                'visit_id': visit.id,
                 'duration_seconds': duration,
-                'created_at': session.created_at.isoformat() if session.created_at else None,
+                'created_at': visit.visit_date.isoformat() if visit.visit_date else None,
                 'stress_classes': {
                     'baseline_percentage': round(baseline, 2),
                     'stress_percentage': round(stress, 2),
@@ -325,14 +311,14 @@ class StressClassDistributionView(APIView):
                     'meditation_percentage': round(meditation, 2)
                 }
             })
-            
+
             # Agreguj dane dla pacjenta (średnia ważona)
             patient_data = patients_data[patient_id]
             patient_data['patient_id'] = patient_id
             patient_data['patient_name'] = patient_name
             patient_data['total_sessions'] += 1
             patient_data['total_duration_seconds'] += duration
-            
+
             # Oblicz średnią ważoną
             if duration > 0:
                 patient_data['weighted_baseline'] += baseline * duration

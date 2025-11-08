@@ -1,10 +1,12 @@
 from rest_framework import serializers
-from .models import Patient, Visit, Session
+from .models import Patient, Visit
+
 
 class VisitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visit
         fields = '__all__'
+
 
 class PatientSerializer(serializers.ModelSerializer):
     visits = VisitSerializer(many=True, read_only=True)
@@ -14,14 +16,8 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'dob', 'gender', 'pesel', 'notes', 'long_term_summary', 'visits']
 
 
-class SessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Session
-        fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
-
-
-class SessionSimulationInputSerializer(serializers.Serializer):
-    """Serializer dla danych wejściowych do symulacji sesji"""
+class VisitSimulationInputSerializer(serializers.Serializer):
+    """Serializer dla danych wejściowych do symulacji tworzącej wizytę"""
     duration_sec = serializers.IntegerField(min_value=1, required=False, default=300, help_text="Długość symulacji w sekundach (domyślnie 300)")
-    visit_id = serializers.IntegerField(required=False, allow_null=True)
+    # opcjonalnie można podać datę wizyty w ISO lub zostanie użyta teraz
+    visit_date = serializers.DateTimeField(required=False, allow_null=True)
