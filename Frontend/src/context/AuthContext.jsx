@@ -3,9 +3,9 @@ import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
 
 const API_URLS = {
-	login: '/auth/login/',
-	register: '/auth/register/',
-	refresh: '/auth/token/refresh/',
+	login: '/auth/login',
+	register: '/auth/register',
+	refresh: '/auth/token/refresh',
 }
 
 // Configure axios with base URL for development
