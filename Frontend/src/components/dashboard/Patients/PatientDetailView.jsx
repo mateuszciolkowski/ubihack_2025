@@ -29,10 +29,14 @@ import {
 	Edit as EditIcon,
 	Save as SaveIcon,
 	Cancel as CancelIcon,
+	Watch as WatchIcon,
+	Audiotrack as AudioIcon,
 } from '@mui/icons-material'
 import { axiosInstance } from '../../../context/AuthContext'
 import BarChart from './BarChart'
 import AddVisit from './AddVisit'
+import BraceletDataUpload from './BraceletDataUpload'
+import AudioUpload from './AudioUpload'
 
 const DROPDOWN_MAX_HEIGHT = 250
 
@@ -175,6 +179,106 @@ const PatientDetailView = ({ patientId, onBack }) => {
 			alert('Nie udało się zapisać notatek. Spróbuj ponownie.')
 		} finally {
 			setSavingNotes(false)
+		}
+	}
+
+	const handleBraceletDataUpload = async (data, visitId) => {
+		// Mock upload - na razie tylko logowanie
+		console.log('Mock upload danych z bransoletki:', { data, visitId })
+		
+		// Mock - symuluj generowanie stress_history po wgraniu danych
+		// W rzeczywistości tutaj byłoby:
+		// 1. Upload danych do backendu
+		// 2. Wywołanie analizy stresu
+		// 3. Zapisanie wyników jako stress_history
+		
+		// Symuluj opóźnienie przetwarzania
+		await new Promise(resolve => setTimeout(resolve, 1000))
+		
+		// Mock stress_history - w rzeczywistości pochodziłoby z analizy
+		const mockStressHistory = {
+			summary: {
+				overall_stress_value: 2.5,
+				stress_percentage: 25.0,
+				stress_segments_count: 8,
+			},
+			segments: Array.from({ length: 30 }, (_, i) => ({
+				timestamp: new Date(Date.now() - (30 - i) * 10000).toISOString(),
+				stress_level: Math.random() * 10,
+			}))
+		}
+
+		try {
+			// Mock - zapisz stress_history do wizyty
+			await axiosInstance.patch(`/api/visits/${visitId}/`, {
+				stress_history: mockStressHistory,
+			})
+
+			// Odśwież dane pacjenta
+			const response = await axiosInstance.get(`/api/patients/${patientId}/full/`)
+			setPatientData(response.data)
+			
+			// Automatycznie wybierz tę wizytę
+			setSelectedVisitId(visitId)
+		} catch (err) {
+			console.error('Failed to save stress history:', err)
+			alert('Nie udało się zapisać danych. Spróbuj ponownie.')
+		}
+	}
+
+	const handleAudioUpload = async (file, visitId) => {
+		// Mock upload - na razie tylko logowanie
+		console.log('Mock upload nagrania audio:', { file, visitId })
+		// W przyszłości tutaj będzie prawdziwy upload:
+		// const formData = new FormData()
+		// formData.append('audio_file', file)
+		// await axiosInstance.post(`/api/visits/${visitId}/upload-audio/`, formData, {
+		//   headers: { 'Content-Type': 'multipart/form-data' }
+		// })
+	}
+
+	const handleAudioAnalyze = async (analysisResults, visitId) => {
+		// Mock analiza nagrania - generuj stress_history na podstawie analizy
+		console.log('Mock analiza nagrania:', { analysisResults, visitId })
+
+		// Generuj mock stress_history na podstawie wyników analizy
+		const numSegments = Math.floor(analysisResults.duration / 10) // Segment co 10 sekund
+		const mockStressHistory = {
+			summary: {
+				overall_stress_value: analysisResults.stressLevel,
+				stress_percentage: analysisResults.stressPercentage,
+				stress_segments_count: Math.floor(numSegments * (analysisResults.stressPercentage / 100)),
+			},
+			segments: Array.from({ length: numSegments }, (_, i) => {
+				const segmentTime = i * 10
+				// Sprawdź czy to kluczowy moment
+				const keyMoment = analysisResults.keyMoments?.find(
+					km => Math.abs(km.time - segmentTime) < 5
+				)
+				return {
+					timestamp: new Date(Date.now() - (numSegments - i) * 10000).toISOString(),
+					stress_level: keyMoment 
+						? (keyMoment.description.includes('stresu') ? 7 + Math.random() * 3 : 2 + Math.random() * 3)
+						: analysisResults.stressLevel + (Math.random() - 0.5) * 2,
+				}
+			}),
+		}
+
+		try {
+			// Zapisz stress_history do wizyty
+			await axiosInstance.patch(`/api/visits/${visitId}/`, {
+				stress_history: mockStressHistory,
+			})
+
+			// Odśwież dane pacjenta
+			const response = await axiosInstance.get(`/api/patients/${patientId}/full/`)
+			setPatientData(response.data)
+			
+			// Automatycznie wybierz tę wizytę
+			setSelectedVisitId(visitId)
+		} catch (err) {
+			console.error('Failed to save stress history from audio analysis:', err)
+			alert('Nie udało się zapisać wyników analizy. Spróbuj ponownie.')
 		}
 	}
 
@@ -635,9 +739,9 @@ const PatientDetailView = ({ patientId, onBack }) => {
 													</Box>
 												)}
 
-												{/* Wykres historii stresu */}
-												{selectedVisit.stress_history && (
-													<Box>
+												{/* Wykres historii stresu lub wgrywanie danych z bransoletki */}
+												{selectedVisit.stress_history ? (
+													<Box sx={{ mb: 3 }}>
 														<Typography
 															variant='subtitle1'
 															sx={{
@@ -660,13 +764,52 @@ const PatientDetailView = ({ patientId, onBack }) => {
 															<BarChart data={selectedVisit.stress_history} />
 														</Paper>
 													</Box>
+												) : (
+													<Box sx={{ mb: 3 }}>
+														<Typography
+															variant='subtitle1'
+															sx={{
+																fontWeight: 600,
+																mb: 1.5,
+																display: 'flex',
+																alignItems: 'center',
+																gap: 1,
+																color: '#4A90E2',
+															}}>
+															<WatchIcon />
+															Dane z bransoletki
+														</Typography>
+														<Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+															Brak danych o historii stresu dla tej wizyty. Wgraj dane z bransoletki, aby wygenerować analizę stresu.
+														</Alert>
+														<BraceletDataUpload
+															visitId={selectedVisit.id}
+															onUpload={handleBraceletDataUpload}
+														/>
+													</Box>
 												)}
 
-												{!selectedVisit.stress_history && (
-													<Alert severity="info" sx={{ borderRadius: 2 }}>
-														Brak danych o historii stresu dla tej wizyty.
-													</Alert>
-												)}
+												{/* Nagranie audio - zawsze dostępne */}
+												<Box sx={{ mb: 3 }}>
+													<Typography
+														variant='subtitle1'
+														sx={{
+															fontWeight: 600,
+															mb: 1.5,
+															display: 'flex',
+															alignItems: 'center',
+															gap: 1,
+															color: '#4A90E2',
+														}}>
+														<AudioIcon />
+														Nagranie wizyty
+													</Typography>
+													<AudioUpload
+														visitId={selectedVisit.id}
+														onUpload={handleAudioUpload}
+														onAnalyze={handleAudioAnalyze}
+													/>
+												</Box>
 											</Box>
 										)}
 									</Box>
