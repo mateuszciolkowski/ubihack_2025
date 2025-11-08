@@ -41,7 +41,7 @@ def generate_stress_history(visit_date):
     for _ in range(num_entries):
         history.append({
             "timestamp": current_time.isoformat(),
-            "stress_level": random.randint(1, 10)
+            "stress_level": random.randint(1, 4)
         })
         current_time += TIME_INTERVAL
 
