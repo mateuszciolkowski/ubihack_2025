@@ -10,31 +10,18 @@ import {
 	Chip,
 	Divider,
 	IconButton,
-	Tabs,
-	Tab,
 } from '@mui/material'
 import {
 	Assessment as ReportIcon,
-	Psychology as PsychologyIcon,
 	ArrowBack as ArrowBackIcon,
-	TrendingUp as TrendingUpIcon,
 	Person as PersonIcon,
 } from '@mui/icons-material'
 import { axiosInstance } from '../../../context/AuthContext'
-
-function TabPanel({ children, value, index }) {
-	return (
-		<div role="tabpanel" hidden={value !== index}>
-			{value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-		</div>
-	)
-}
 
 function ReportView({ onBack }) {
 	const [patients, setPatients] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
-	const [selectedTab, setSelectedTab] = useState(0)
 
 	useEffect(() => {
 		const fetchPatients = async () => {
@@ -61,10 +48,6 @@ function ReportView({ onBack }) {
 
 		fetchPatients()
 	}, [])
-
-	const handleTabChange = (event, newValue) => {
-		setSelectedTab(newValue)
-	}
 
 	if (loading) {
 		return (
@@ -164,9 +147,6 @@ function ReportView({ onBack }) {
 		)
 	}
 
-	// Podsumowanie ogólne - połącz wszystkie raporty
-	const allSummaries = patients.map(p => p.long_term_summary).join('\n\n')
-
 	return (
 		<Box>
 			{/* Header */}
@@ -228,58 +208,10 @@ function ReportView({ onBack }) {
 						sx={{ fontWeight: 600 }}
 					/>
 				</Box>
-
-				{/* Tabs */}
-				<Tabs value={selectedTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-					<Tab label="Podsumowanie ogólne" icon={<TrendingUpIcon />} iconPosition="start" />
-					<Tab label="Raporty indywidualne" icon={<PersonIcon />} iconPosition="start" />
-				</Tabs>
 			</Box>
 
-			{/* Tab Panel: Podsumowanie ogólne */}
-			<TabPanel value={selectedTab} index={0}>
-				<Card
-					sx={{
-						borderRadius: 3,
-						border: '1px solid',
-						borderColor: 'rgba(74, 144, 226, 0.12)',
-						background: 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
-						boxShadow: '0 4px 20px rgba(74, 144, 226, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)',
-					}}>
-					<CardContent sx={{ p: 4 }}>
-						<Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-							<PsychologyIcon sx={{ fontSize: 32, color: '#4A90E2' }} />
-							<Typography variant='h5' sx={{ fontWeight: 600, color: '#4A90E2' }}>
-								Analiza ogólna
-							</Typography>
-						</Box>
-						<Divider sx={{ mb: 3 }} />
-						<Paper
-							variant='outlined'
-							sx={{
-								p: 3,
-								borderRadius: 2,
-								backgroundColor: 'rgba(74, 144, 226, 0.02)',
-								borderColor: 'rgba(74, 144, 226, 0.2)',
-							}}>
-							<Typography
-								variant='body1'
-								sx={{
-									whiteSpace: 'pre-wrap',
-									lineHeight: 1.8,
-									color: '#333',
-									fontSize: '1rem',
-								}}>
-								{allSummaries || 'Brak dostępnych analiz.'}
-							</Typography>
-						</Paper>
-					</CardContent>
-				</Card>
-			</TabPanel>
-
-			{/* Tab Panel: Raporty indywidualne */}
-			<TabPanel value={selectedTab} index={1}>
-				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+			{/* Raporty indywidualne */}
+			<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 3 }}>
 					{patients.map((patient, index) => (
 						<Card
 							key={patient.id}
@@ -337,8 +269,7 @@ function ReportView({ onBack }) {
 							</CardContent>
 						</Card>
 					))}
-				</Box>
-			</TabPanel>
+			</Box>
 		</Box>
 	)
 }
