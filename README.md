@@ -1,4 +1,10 @@
 # 🧠 Synaptis - Emotional Insight Platform
+<p align="center">
+  <a href="https://synaptis.fun" target="_blank">
+    <img src="https://img.shields.io/badge/🌐%20Visit%20Website-Synaptis.fun-blue?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Visit Synaptis.fun"/>
+  </a>
+</p>
+
 
 <div align="center">
 
